@@ -6,6 +6,9 @@ Beauty apps are good at telling you what to buy next. This one is built for the 
 
 ## What it does
 
+- **Audit summary** — dead money in expired product, value at risk, money spent on things never once used, and total stash value. Each tile drills into the matching list.
+- **Cost per use** — the $68 bronzer you've reached for four times is a $17-per-use bronzer
+- **Overstock check** — "you own 3 blushes," surfaced before the next haul
 - **Catalog your stash** — product, brand, category, price, photo
 - **Expiry tracking** — enter the opened date and PAO shelf life, get an expiry status
 - **Usage tracking** — one tap to log a use, so "what do I actually reach for" stops being a guess
@@ -44,5 +47,5 @@ Then open http://localhost:3000.
 ## Roadmap
 
 - AI photo recognition to auto-fill brand and product from a snapshot
-- Cost-per-use, so the $68 bronzer you've used four times has a number attached
+- Usage history over time, not just a last-used date
 - "What should I buy next" that accounts for what's already in the drawer

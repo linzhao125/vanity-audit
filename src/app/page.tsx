@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getProductStatus, type DeclutterStatus } from "@/lib/declutter";
+import { getStashStats } from "@/lib/stats";
 import { ProductCard } from "@/components/ProductCard";
+import { AuditSummary } from "@/components/AuditSummary";
 
 const FILTERS: { key: DeclutterStatus["key"] | "all"; label: string }[] = [
   { key: "all", label: "All" },
@@ -36,6 +38,8 @@ export default async function Home(props: PageProps<"/">) {
       ? withStatus
       : withStatus.filter(({ status }) => status.key === activeFilter);
 
+  const stats = getStashStats(products);
+
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
       <div className="flex items-center justify-between gap-4">
@@ -52,6 +56,8 @@ export default async function Home(props: PageProps<"/">) {
           + Add product
         </Link>
       </div>
+
+      {products.length > 0 && <AuditSummary stats={stats} />}
 
       <div className="mt-6 flex flex-wrap gap-2">
         {FILTERS.map((filter) => {

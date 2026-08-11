@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/generated/prisma/client";
 import { getProductStatus } from "@/lib/declutter";
+import { costPerUse } from "@/lib/stats";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeleteButton } from "@/components/DeleteButton";
 import { markUsed, deleteProduct } from "@/app/actions";
@@ -22,6 +23,7 @@ function formatTimestamp(date: Date | null): string {
 
 export function ProductCard({ product }: { product: Product }) {
   const status = getProductStatus(product);
+  const perUse = costPerUse(product);
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-black/10 dark:border-white/15">
@@ -63,6 +65,14 @@ export function ProductCard({ product }: { product: Product }) {
             <>
               <dt>Price</dt>
               <dd>${product.price.toFixed(2)}</dd>
+            </>
+          )}
+          {perUse != null && (
+            <>
+              <dt>Per use</dt>
+              <dd className="font-medium text-black/80 dark:text-white/80">
+                ${perUse.toFixed(2)}
+              </dd>
             </>
           )}
         </dl>
