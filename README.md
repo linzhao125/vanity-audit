@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vanity Audit
 
-## Getting Started
+A makeup stash tracker that tells you what to actually throw away.
 
-First, run the development server:
+Beauty apps are good at telling you what to buy next. This one is built for the opposite problem: you already own too much, half of it is expired, and you keep reaching for the same five things. Vanity Audit catalogs what you own, tracks what you actually use, and flags what's dead weight.
+
+## What it does
+
+- **Catalog your stash** — product, brand, category, price, photo
+- **Expiry tracking** — enter the opened date and PAO shelf life, get an expiry status
+- **Usage tracking** — one tap to log a use, so "what do I actually reach for" stops being a guess
+- **Declutter statuses** — every product lands in one of five buckets, each filterable:
+
+  | Status | Meaning |
+  | --- | --- |
+  | Expired | Past its shelf life after opening |
+  | Expiring soon | Within 30 days of expiry |
+  | Unused 90+ days | Still good, but you don't reach for it |
+  | Unopened | Bought, never opened |
+  | In rotation | Actively used and not expired |
+
+## Stack
+
+Next.js 16 (App Router, Server Actions) · TypeScript · Tailwind CSS · Prisma 7 + SQLite
+
+Runs entirely on your machine. No accounts, no cloud, no data leaving your laptop.
+
+## Running it
 
 ```bash
+npm install
+cp .env.example .env
+npx prisma migrate dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Notes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Photos are stored in `public/uploads/` and the database in `dev.db` — both are gitignored, since they're personal data.
+- Date-only fields (purchase, opened) are stored at UTC midnight and formatted in UTC, so the displayed day doesn't shift by timezone.
 
-## Learn More
+## Roadmap
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- AI photo recognition to auto-fill brand and product from a snapshot
+- Cost-per-use, so the $68 bronzer you've used four times has a number attached
+- "What should I buy next" that accounts for what's already in the drawer

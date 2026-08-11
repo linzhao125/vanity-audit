@@ -1,69 +1,98 @@
-import Image from "next/image";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { getProductStatus, type DeclutterStatus } from "@/lib/declutter";
+import { ProductCard } from "@/components/ProductCard";
 
-export default function Home() {
+const FILTERS: { key: DeclutterStatus["key"] | "all"; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "expired", label: "Expired" },
+  { key: "expiring", label: "Expiring soon" },
+  { key: "unused", label: "Unused 90+ days" },
+  { key: "unopened", label: "Unopened" },
+  { key: "active", label: "In rotation" },
+];
+
+export default async function Home(props: PageProps<"/">) {
+  const searchParams = await props.searchParams;
+  const activeFilter =
+    typeof searchParams.status === "string" ? searchParams.status : "all";
+
+  const products = await prisma.product.findMany({
+    orderBy: { name: "asc" },
+  });
+
+  const withStatus = products.map((product) => ({
+    product,
+    status: getProductStatus(product),
+  }));
+
+  const counts = withStatus.reduce<Record<string, number>>((acc, { status }) => {
+    acc[status.key] = (acc[status.key] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const visible =
+    activeFilter === "all"
+      ? withStatus
+      : withStatus.filter(({ status }) => status.key === activeFilter);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">Vanity Audit</h1>
+          <p className="text-sm text-black/60 dark:text-white/60">
+            {products.length} product{products.length === 1 ? "" : "s"} tracked
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <Link
+          href="/add"
+          className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+        >
+          + Add product
+        </Link>
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-2">
+        {FILTERS.map((filter) => {
+          const isActive = filter.key === activeFilter;
+          const count = filter.key === "all" ? products.length : counts[filter.key] ?? 0;
+          return (
+            <Link
+              key={filter.key}
+              href={filter.key === "all" ? "/" : `/?status=${filter.key}`}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                isActive
+                  ? "bg-black text-white dark:bg-white dark:text-black"
+                  : "bg-black/5 text-black/70 hover:bg-black/10 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/15"
+              }`}
+            >
+              {filter.label} ({count})
+            </Link>
+          );
+        })}
+      </div>
+
+      {visible.length === 0 ? (
+        <div className="mt-16 flex flex-col items-center gap-2 text-center text-black/50 dark:text-white/50">
+          <p className="text-sm">
+            {products.length === 0
+              ? "Nothing here yet — add your first product to start the audit."
+              : "Nothing matches this filter."}
+          </p>
+          {products.length === 0 && (
+            <Link href="/add" className="text-sm font-medium underline">
+              Add a product
+            </Link>
+          )}
         </div>
-      </main>
+      ) : (
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {visible.map(({ product }) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
